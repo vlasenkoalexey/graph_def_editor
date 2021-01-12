@@ -745,6 +745,11 @@ class Graph(object):
     # instance that will be used to reconstitute any variables in the graph
     if self.has_passthrough_saver:
       meta_graph.saver_def.CopyFrom(self._passthrough_saver.saver_def)
+      # There is a bug in dir_util.copy_tree, it caches folder names
+      # it created, and crashes if folder that it previously created
+      # was removed. See https://bugs.python.org/issue42605
+      if not os.path.exists(_vars_dir_for_saved_model(saved_model_path)):
+        os.mkdir(_vars_dir_for_saved_model(saved_model_path))
       # Copy serialized variables checkpoint wholesale, because the checkpoint
       # format is a black box to us.
       dir_util.copy_tree(self._passthrough_saver.path,
